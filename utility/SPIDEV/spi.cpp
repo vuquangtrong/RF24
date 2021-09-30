@@ -145,7 +145,11 @@ uint8_t SPI::transfer(uint8_t tx)
     tr.speed_hz = _spi_speed; //RF24_SPI_SPEED;
     tr.delay_usecs = 0;
     tr.bits_per_word = RF24_SPIDEV_BITS;
+#ifdef JETSON_NANO_DEV_KIT
+    tr.cs_change = 1;
+#else
     tr.cs_change = 0;
+#endif
 
     int ret;
     ret = ioctl(this->fd, SPI_IOC_MESSAGE(1), &tr);
@@ -170,7 +174,11 @@ void SPI::transfernb(char* tbuf, char* rbuf, uint32_t len)
     tr.speed_hz = _spi_speed; //RF24_SPI_SPEED;
     tr.delay_usecs = 0;
     tr.bits_per_word = RF24_SPIDEV_BITS;
+#ifdef JETSON_NANO_DEV_KIT
+    tr.cs_change = 1;
+#else
     tr.cs_change = 0;
+#endif
 
     int ret;
     ret = ioctl(this->fd, SPI_IOC_MESSAGE(1), &tr);

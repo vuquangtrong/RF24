@@ -141,6 +141,11 @@ function detect_machine {
     *)
         soc="unknown"
     esac
+
+    if [[ $machine == "NVIDIA Jetson Nano Developer Kit"* ]]; then
+        tp="JetsonNanoDevKit"
+    fi
+
     echo "${soc} ${tp} ${cpu}"
 }
 
@@ -452,6 +457,12 @@ if [ "${LIB_DEPRECATE_NAME}" ]; then
 fi
 DRIVER_DIR=${DRIVER_DIR:-${ARCH_DIR}/${DRIVER}}
 CFLAGS="$CPUFLAGS -Ofast -Wall -pthread $CFLAGS"
+
+#*******************************************
+# TYPE specific
+if [ "$TYPE" == "JetsonNanoDevKit" ]; then
+    CFLAGS+=" -DJETSON_NANO_DEV_KIT"
+fi
 
 echo "[SECTION] Preparing configuration."
 cp ${DRIVER_DIR}/includes.h ${ARCH_DIR}/includes.h
