@@ -2,7 +2,7 @@ name: build Docs
 
 on:
   pull_request:
-    types: [opened, reopened]
+    branches: [master]
     paths:
       - "*.h"
       - "docs/**"
@@ -17,6 +17,7 @@ on:
       - "Doxyfile"
       - "library.properties" # get lib version from here
   push:
+    branches: [master]
     paths:
       - "*.h"
       - "docs/**"
@@ -32,7 +33,6 @@ on:
       - "library.properties" # get lib version from here
   release:
     types: [published, edited]
-    branches: [master]
   workflow_dispatch:
 
 jobs:
@@ -40,4 +40,5 @@ jobs:
     uses: nRF24/.github/.github/workflows/build_docs.yaml@main
     with:
       deploy-gh-pages: ${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master') }}
+      doxygen-version: '1.10.0'
     secrets: inherit
