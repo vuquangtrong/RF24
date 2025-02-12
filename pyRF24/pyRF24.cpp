@@ -19,10 +19,9 @@ char* get_bytes_or_bytearray_str(bp::object buf)
     py_ba = buf.ptr();
     if (PyByteArray_Check(py_ba))
         return PyByteArray_AsString(py_ba);
-    else if (PyBytes_Check(py_ba))
+    if (PyBytes_Check(py_ba))
         return PyBytes_AsString(py_ba);
-    else
-        throw_ba_exception();
+    throw_ba_exception();
 
     return NULL;
 }
@@ -33,10 +32,9 @@ int get_bytes_or_bytearray_ln(bp::object buf)
     py_ba = buf.ptr();
     if (PyByteArray_Check(py_ba))
         return PyByteArray_Size(py_ba);
-    else if (PyBytes_Check(py_ba))
+    if (PyBytes_Check(py_ba))
         return PyBytes_Size(py_ba);
-    else
-        throw_ba_exception();
+    throw_ba_exception();
 
     return 0;
 }
@@ -282,11 +280,18 @@ BOOST_PYTHON_MODULE(RF24)
         .value("RF24_PA_ERROR", RF24_PA_ERROR)
         .export_values();
 
+    bp::enum_<rf24_fifo_state_e>("rf24_fifo_state_e")
+        .value("RF24_FIFO_OCCUPIED", RF24_FIFO_OCCUPIED)
+        .value("RF24_FIFO_EMPTY", RF24_FIFO_EMPTY)
+        .value("RF24_FIFO_FULL", RF24_FIFO_FULL)
+        .value("RF24_FIFO_INVALID", RF24_FIFO_INVALID)
+        .export_values();
+
     // ******************** RF24 class  **************************
     bp::class_<RF24>("RF24", bp::init<uint16_t, uint16_t>((bp::arg("_cepin"), bp::arg("_cspin"))))
 #if defined(RF24_LINUX) && !defined(MRAA)
-        .def(bp::init<uint16_t, uint16_t, uint32_t>((bp::arg("_cepin"), bp::arg("_cspin"), bp::arg("spispeed"))))
-        .def(bp::init<uint32_t>((bp::arg("spispeed"))))
+        .def(bp::init<uint16_t, uint16_t, uint32_t>((bp::arg("_cepin"), bp::arg("_cspin"), bp::arg("spi_speed"))))
+        .def(bp::init<uint32_t>((bp::arg("spi_speed"))))
         .def(bp::init<>())
 #endif
         .def("available", (bool(::RF24::*)())(&::RF24::available))
@@ -322,7 +327,7 @@ BOOST_PYTHON_MODULE(RF24)
         .def("reUseTX", &RF24::reUseTX)
         .def("read", &read_wrap, (bp::arg("maxlen")))
         .def("rxFifoFull", &RF24::rxFifoFull)
-        .def("isFifo", (uint8_t(::RF24::*)(bool))(&::RF24::isFifo), (bp::arg("about_tx")))
+        .def("isFifo", (rf24_fifo_state_e(::RF24::*)(bool))(&::RF24::isFifo), (bp::arg("about_tx")))
         .def("isFifo", (bool(::RF24::*)(bool, bool))(&::RF24::isFifo), (bp::arg("about_tx"), bp::arg("check_empty")))
         .def("setAddressWidth", &RF24::setAddressWidth)
         .def("setAutoAck", (void(::RF24::*)(bool))(&::RF24::setAutoAck), (bp::arg("enable")))

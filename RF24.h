@@ -12,8 +12,8 @@
  * Class declaration for RF24 and helper enums
  */
 
-#ifndef __RF24_H__
-#define __RF24_H__
+#ifndef RF24_H_
+#define RF24_H_
 
 #include "RF24_config.h"
 
@@ -110,6 +110,26 @@ typedef enum
 
 /**
  * @}
+ * @defgroup fifoState FIFO state
+ * The state of a single FIFO (RX or TX).
+ * Remember, each FIFO has a maximum occupancy of 3 payloads.
+ * @see RF24::isFifo()
+ * @{
+ */
+typedef enum
+{
+    /// @brief The FIFO is not full nor empty, but it is occupied with 1 or 2 payloads.
+    RF24_FIFO_OCCUPIED,
+    /// @brief The FIFO is empty.
+    RF24_FIFO_EMPTY,
+    /// @brief The FIFO is full.
+    RF24_FIFO_FULL,
+    /// @brief Represents corruption of data over SPI (when observed).
+    RF24_FIFO_INVALID,
+} rf24_fifo_state_e;
+
+/**
+ * @}
  * @brief Driver class for nRF24L01(+) 2.4GHz Wireless Transceiver
  */
 class RF24
@@ -195,7 +215,8 @@ public:
      *
      * See [Related Pages](pages.html) for device specific information
      *
-     * @param _cepin The pin attached to Chip Enable on the RF module
+     * @param _cepin The pin attached to Chip Enable on the RF module.
+     * Review our [Linux general](rpi_general.md) doc for details about selecting pin numbers on Linux systems.
      * @param _cspin The pin attached to Chip Select (often labeled CSN) on the radio module.
      * - For the Arduino Due board, the [Arduino Due extended SPI feature](https://www.arduino.cc/en/Reference/DueExtendedSPI)
      * is not supported. This means that the Due's pins 4, 10, or 52 are not mandated options (can use any digital output pin) for
@@ -270,7 +291,8 @@ public:
      * @param spiBus A pointer or reference to an instantiated SPI bus object.
      * The `_SPI` datatype is a "wrapped" definition that will represent
      * various SPI implementations based on the specified platform.
-     * @param _cepin The pin attached to Chip Enable on the RF module
+     * @param _cepin The pin attached to Chip Enable on the RF module.
+     * Review our [Linux general](rpi_general.md) doc for details about selecting pin numbers on Linux systems.
      * @param _cspin The pin attached to Chip Select (often labeled CSN) on the radio module.
      * - For the Arduino Due board, the [Arduino Due extended SPI feature](https://www.arduino.cc/en/Reference/DueExtendedSPI)
      * is not supported. This means that the Due's pins 4, 10, or 52 are not mandated options (can use any digital output pin) for the radio's CSN pin.
@@ -785,13 +807,15 @@ public:
     /**
      * @param about_tx `true` focuses on the TX FIFO, `false` focuses on the RX FIFO
      * @return
-     * - `0` if the specified FIFO is neither full nor empty.
-     * - `1` if the specified FIFO is empty.
-     * - `2` if the specified FIFO is full.
+     * - @ref RF24_FIFO_OCCUPIED (`0`) if the specified FIFO is neither full nor empty.
+     * - @ref RF24_FIFO_EMPTY (`1`) if the specified FIFO is empty.
+     * - @ref RF24_FIFO_FULL (`2`) if the specified FIFO is full.
+     * - @ref RF24_FIFO_INVALID (`3`) if the data fetched over SPI was malformed.
      */
-    uint8_t isFifo(bool about_tx);
+    rf24_fifo_state_e isFifo(bool about_tx);
 
     /**
+     * @deprecated Use RF24::isFifo(bool about_tx) instead.
      * @param about_tx `true` focuses on the TX FIFO, `false` focuses on the RX FIFO
      * @param check_empty
      * - `true` checks if the specified FIFO is empty
@@ -1746,7 +1770,7 @@ public:
      *
      * On all devices but Linux and ATTiny, a small delay is added to the CSN toggling function
      *
-     * This is intended to minimise the speed of SPI polling due to radio commands
+     * This is intended to minimize the speed of SPI polling due to radio commands
      *
      * If using interrupts or timed requests, this can be set to 0 Default:5
      */
@@ -1789,7 +1813,7 @@ public:
      * @brief Open or close all data pipes.
      *
      * This function does not alter the addresses assigned to pipes. It is simply a
-     * convenience function that allows controling all pipes at once.
+     * convenience function that allows controlling all pipes at once.
      * @param isEnabled `true` opens all pipes; `false` closes all pipes.
      */
     void toggleAllPipes(bool isEnabled);
@@ -1929,12 +1953,10 @@ private:
      *
      * @param reg Which register. Use constants from nRF24L01.h
      * @param value The new value to write
-     * @param is_cmd_only if this parameter is true, then the `reg` parameter
-     * is written, and the `value` param is ignored.
      * @return Nothing. Older versions of this function returned the status
      * byte, but that it now saved to a private member on all SPI transactions.
      */
-    void write_register(uint8_t reg, uint8_t value, bool is_cmd_only = false);
+    void write_register(uint8_t reg, uint8_t value);
 
     /**
      * Write the transmit payload
@@ -2412,4 +2434,4 @@ private:
  * Use `ctrl+c` to quit at any time.
  */
 
-#endif // __RF24_H__
+#endif // RF24_H_
