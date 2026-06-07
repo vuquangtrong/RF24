@@ -1,4 +1,4 @@
-name: Arduino CLI build
+name: Arduino
 
 on:
   pull_request:
@@ -14,6 +14,12 @@ on:
       - ".github/workflows/build_arduino.yml"
       - "examples/**"
       - "!examples/old_backups/**"
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
@@ -104,9 +110,9 @@ jobs:
         # Generate size deltas data for this board
         include:
           - fqbn: arduino:avr:nano
-            enable-deltas-report: true
+            enable-deltas-report: ${{ github.event_name == 'pull_request' }}
           - fqbn: arduino:samd:mkrzero  # InterruptConfigure.ino uses pin 2
-            enable-deltas-report: true
+            enable-deltas-report: ${{ github.event_name == 'pull_request' }}
 
   #### NOTE installing ATTinyCore has become too problematic for various reasons
   #### I'll have to revisit this later when the Arduino CLI tool gets their act together
@@ -160,4 +166,7 @@ jobs:
   report:
     needs: [build] # , attiny]
     if: github.event_name == 'pull_request'
+    permissions:
+      # for posting/updating comments on PR threads
+      pull-requests: write
     uses: nRF24/.github/.github/workflows/arduino_size_deltas.yaml@main
